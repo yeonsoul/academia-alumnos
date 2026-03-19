@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Academia - Sistema de Alumnos</title>
+
+<style>
+
+*{
+box-sizing:border-box;
+}
+
+body{
+font-family:Arial;
+background:#f2f2f2;
+margin:0;
+padding:20px;
+}
+
+.container{
+max-width:1000px;
+margin:auto;
+background:white;
+padding:25px;
+border-radius:10px;
+box-shadow:0 0 10px rgba(0,0,0,0.1);
+}
+
+h2{
+text-align:center;
+}
+
+input,select{
+width:100%;
+padding:10px;
+margin:6px 0;
+border-radius:6px;
+border:1px solid #ccc;
+}
+
+button{
+padding:10px;
+background:#2c7be5;
+color:white;
+border:none;
+border-radius:6px;
+cursor:pointer;
+margin-top:5px;
+}
+
+button:hover{
+background:#1a5edb;
+}
+
+.table-container{
+margin-top:30px;
+overflow-x:auto;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+}
+
+th,td{
+border:1px solid #ddd;
+padding:8px;
+text-align:center;
+}
+
+th{
+background:#2c7be5;
+color:white;
+}
+
+.buscar{
+margin-top:20px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Sistema de Alumnos</h2>
+
+<form id="formAlumno">
+
+<input type="hidden" name="id" id="id">
+
+<input name="nombre" placeholder="Nombre" required>
+
+<input name="telefono" placeholder="Telefono">
+
+<select name="dias">
+<option>Lunes-Miercoles-Viernes</option>
+<option>Sabado-Domingo</option>
+</select>
+
+<select name="horario">
+
+<option>5:00-6:00</option>
+<option>6:00-7:00</option>
+<option>7:00-8:00</option>
+
+<option>5:00-6:30</option>
+<option>6:30-8:00</option>
+
+</select>
+
+<input type="date" name="fecha_inicio">
+
+<input type="number" name="mensualidad" value="100">
+
+<select name="estado">
+<option>Activo</option>
+<option>Inactivo</option>
+</select>
+
+<select name="pago">
+<option>Pagado</option>
+<option>Debe</option>
+</select>
+
+<button type="submit">Guardar</button>
+
+</form>
+
+<button onclick="listarAlumnos()">Listar alumnos</button>
+
+<input class="buscar" id="buscar" placeholder="Buscar alumno">
+
+<div class="table-container">
+
+<table id="tabla">
+
+<thead>
+
+<tr>
+
+<th>Nombre</th>
+<th>Telefono</th>
+<th>Dias</th>
+<th>Horario</th>
+<th>Inicio</th>
+<th>Mensualidad</th>
+<th>Estado</th>
+<th>Pago</th>
+<th>Acciones</th>
+
+</tr>
+
+</thead>
+
+<tbody></tbody>
+
+</table>
+
+</div>
+
+</div>
+
+<script>
+
+const url="https://script.google.com/macros/s/AKfycbzO-zM0eMl1W3NWh8G-VlvoZJnqh4dJVx10_uk5wj3zEXfG0E6qZeKfrAsJnwfQ1YVs2Q/exec"
+
+const form=document.getElementById("formAlumno")
+const tabla=document.querySelector("#tabla tbody")
+const buscador=document.getElementById("buscar")
+
+form.addEventListener("submit",function(e){
+
+e.preventDefault()
+
+fetch(url,{
+method:"POST",
+body:new FormData(form)
+})
+.then(res=>res.text())
+.then(data=>{
+alert("Alumno guardado")
+form.reset()
+listarAlumnos()
+})
+
+})
+
+function listarAlumnos(){
+
+fetch(url)
+.then(res=>res.json())
+.then(data=>{
+
+tabla.innerHTML=""
+
+data.forEach(alumno=>{
+
+let fila=`
+<tr>
+
+<td>${alumno.nombre}</td>
+<td>${alumno.telefono}</td>
+<td>${alumno.dias}</td>
+<td>${alumno.horario}</td>
+<td>${alumno.fecha_inicio}</td>
+<td>${alumno.mensualidad}</td>
+<td>${alumno.estado}</td>
+<td>${alumno.pago}</td>
+
+<td>
+
+<button onclick='editarAlumno(${JSON.stringify(alumno)})'>Editar</button>
+
+<button onclick='eliminarAlumno("${alumno.id}")'>Eliminar</button>
+
+</td>
+
+</tr>
+`
+
+tabla.innerHTML+=fila
+
+})
+
+})
+
+}
+
+function editarAlumno(alumno){
+
+document.getElementById("id").value=alumno.id
+form.nombre.value=alumno.nombre
+form.telefono.value=alumno.telefono
+form.dias.value=alumno.dias
+form.horario.value=alumno.horario
+form.fecha_inicio.value=alumno.fecha_inicio
+form.mensualidad.value=alumno.mensualidad
+form.estado.value=alumno.estado
+form.pago.value=alumno.pago
+
+window.scrollTo(0,0)
+
+}
+
+function eliminarAlumno(id){
+
+if(confirm("Eliminar alumno?")){
+
+fetch(url+"?delete="+id)
+.then(res=>res.text())
+.then(data=>{
+listarAlumnos()
+})
+
+}
+
+}
+
+buscador.addEventListener("keyup",function(){
+
+let filtro=this.value.toLowerCase()
+let filas=tabla.getElementsByTagName("tr")
+
+for(let i=0;i<filas.length;i++){
+
+let texto=filas[i].innerText.toLowerCase()
+
+filas[i].style.display=texto.includes(filtro)?"":"none"
+
+}
+
+})
+
+</script>
+
+</body>
+
+</html>
